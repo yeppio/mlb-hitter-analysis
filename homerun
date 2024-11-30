@@ -1,1 +1,28 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
+plt.rcParams['font.family'] = 'NanumGothic'
+df = pd.read_csv("stats.csv", encoding="utf-8")
+
+
+#홈런 분포
+plt.figure(figsize=(8,6))
+sns.histplot(df['home_run'], bins=30, kde=True, color='skyblue')
+plt.title("홈런 분포")
+plt.xlabel("홈런 수")
+plt.ylabel("빈도")
+plt.show()
+
+
+#홈런과 다른 변수들과의 상관관계
+print("\n홈런과 다른 변수들과의 상관계수:")
+print(correlation_matrix["home_run"].sort_values(ascending=False))
+
+
+
+#홈런과 가장 높은 상관관계를 가진 변수 10개 확인
+top_features = correlation_matrix["home_run"].abs().sort_values(ascending=False).index[1:11]
+print("\n홈런과 가장 높은 상관관계를 가진 상위 10개 변수:")
+print(top_features)
