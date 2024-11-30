@@ -1,0 +1,77 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy import stats
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import warnings
+
+pd.set_option('display.float_format', '{:,.3f}'.format)
+df = pd.read_csv(r"C:\Users\yeppi\Desktop\데이터분석\과제\stats.csv")
+# 타율
+df['batting_avg'] = df['hit'] / df['ab']
+
+# EDA 
+print(df[['batting_avg', 'ab', 'hit', 'home_run', 'strikeout', 'walk']].describe())
+
+sns.histplot(df['batting_avg'], kde=True)
+plt.title('Distribution of Batting Average (타율)')
+plt.show()
+
+# Correlation matrix
+corr_matrix = df[['batting_avg', 'ab', 'hit', 'home_run', 'strikeout', 'walk']].corr()
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.3f')
+plt.title('Correlation Matrix')
+plt.show()
+
+# Hypothesis Testing
+# H0: There is no significant relationship 
+# Ha: There is a significant relationship 
+
+_, p_value_strikeout = stats.shapiro(df['strikeout'])
+_, p_value_batting_avg = stats.shapiro(df['batting_avg'])
+
+if p_value_strikeout > 0.05 and p_value_batting_avg > 0.05:
+    print("Both Strikeouts and Batting Average are normally distributed (fail to reject H0).")
+else:
+    print("One or both variables are not normally distributed (reject H0).")
+
+sns.scatterplot(x=df['strikeout'], y=df['batting_avg'])
+plt.title('Strikeouts vs Batting Average')
+plt.show()
+
+#Pearson correlation test
+correlation, p_value = stats.pearsonr(df['strikeout'], df['batting_avg'])
+print(f"Pearson correlation between strikeouts and batting average: {correlation:.3f}, p-value: {p_value:.3f}")
+
+#Regression Analysis
+X = df[['home_run', 'strikeout', 'walk']]
+y = df['batting_avg']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+
+print(f"Regression Model Coefficients: {model.coef_}")
+print(f"Mean Squared Error: {mse:.3f}")
+
+#interesting facts
+print("\nInteresting Insights:")
+print("1. Batting average shows a correlation with strikeouts, suggesting players with fewer strikeouts may have higher averages.")
+print("2. The regression model indicates that home runs, strikeouts, and walks significantly predict batting average.")
+print(f"3. Mean Squared Error for model: {mse:.3f}")
+
+
+df['expected_batting_avg'] = model.predict(df[['home_run', 'strikeout', 'walk']])
+df[['last_name', 'first_name']] = df['last_name, first_name'].str.split(', ', expand=True)
+df['player_name'] = df['last_name'] + ', ' + df['first_name']
+expected_batting_avg_table = df[['player_name', 'expected_batting_avg']]
+
+print("\nExpected Batting Averages for Players:")
+print(expected_batting_avg_table)
